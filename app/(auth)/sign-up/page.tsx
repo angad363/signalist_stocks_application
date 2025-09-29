@@ -5,10 +5,14 @@ import FooterLink from '@/components/forms/FooterLink';
 import InputField from '@/components/forms/InputField';
 import SelectField from '@/components/forms/SelectField';
 import { Button } from '@/components/ui/button';
+import { signUpWithEmail } from '@/lib/actions/auth.actions';
 import { INVESTMENT_GOALS, PREFERRED_INDUSTRIES, RISK_TOLERANCE_OPTIONS } from '@/lib/contants';
+import { useRouter } from 'next/navigation';
 import { SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 const SignUp = () => {
+    const router = useRouter();
     const {
     register,
     handleSubmit,
@@ -27,12 +31,24 @@ const SignUp = () => {
     mode: 'onBlur'
   })
   const onSubmit = async (data: SignUpFormData) => {
-    try {
-        console.log(data)
-    } catch (error) {
-        console.log(error)
+  console.log("Submitting form with data:", data); // 👈 add this
+  try {
+    const result = await signUpWithEmail(data);
+    console.log("Server action result:", result); // 👈 add this
+    if (result.success) {
+      router.push("/");
     }
+  } catch (error) {
+    console.error("Sign-up error:", error);
+    toast.error("Sign Up Failed", {
+      description:
+        error instanceof Error
+          ? error.message
+          : "Failed to create an account",
+    });
   }
+};
+
   return (
     <>
         <h1 className='form-title'>Sign Up & Personalize</h1>
@@ -52,7 +68,12 @@ const SignUp = () => {
                 placeholder="johndoe@email.com"
                 register={register}
                 error={errors.email}
-                validation={{required: 'Email is Required', pattern: /^\w+@\w+\.w+$/, message: 'Email Address is Required'}}
+                validation={{required: 'Email is Required', pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Invalid email address'
+                    },
+                    message: 'Email Address is Required'
+                }}
             />
 
             <InputField
