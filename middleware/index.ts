@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionCookie } from "better-auth/cookies";
 
+/**
+ * Enforces session-based authentication by redirecting unauthenticated requests to the sign-in page.
+ *
+ * @returns A response that redirects unauthenticated requests to '/sign-in', or allows the request to continue for authenticated sessions.
+ */
 export async function middleware(request: NextRequest) {
 const sessionCookie = getSessionCookie(request);
 
