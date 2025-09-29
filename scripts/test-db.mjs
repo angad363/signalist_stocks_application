@@ -17,12 +17,13 @@ async function main() {
     const host = mongoose.connection?.host || '(unknown)';
 
     console.log(`OK: Connected to MongoDB [db="${dbName}", host="${host}", time=${elapsed}ms]`);
-    await mongoose.connection.close();
+    await mongoose.disconnect();
     process.exit(0);
   } catch (err) {
     console.error('ERROR: Database connection failed');
-    console.error(err);
-    try { await mongoose.connection.close(); } catch {}
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(msg);
+    try { await mongoose.disconnect(); } catch {}
     process.exit(1);
   }
 }
