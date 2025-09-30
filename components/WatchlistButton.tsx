@@ -4,7 +4,7 @@ import {
     addToWatchlist,
     removeFromWatchlist,
 } from '@/lib/actions/watchlist.actions';
-import { Star, StarIcon, Stars, Trash2 } from 'lucide-react';
+import { Star, Trash2 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -27,21 +27,35 @@ const WatchlistButton = ({
         return added ? 'Remove from Watchlist' : 'Add to Watchlist';
     }, [added, type]);
 
-    // Handle adding/removing stocks from watchlist
+    // Handle adding/removing stocks from watchlist with error handling
     const toggleWatchlist = async () => {
-        const result = added
-            ? await removeFromWatchlist(symbol)
-            : await addToWatchlist(symbol, company);
+        try {
+            const result = added
+                ? await removeFromWatchlist(symbol)
+                : await addToWatchlist(symbol, company);
 
-        if (result.success) {
-            toast.success(added ? 'Removed from Watchlist' : 'Added to Watchlist', {
-                description: `${company} ${
-                    added ? 'removed from' : 'added to'
-                } your watchlist`,
-            });
+            if (!result?.success) {
+                throw new Error(result?.error || 'Watchlist update failed');
+            }
+
+            toast.success(
+                added ? 'Removed from Watchlist' : 'Added to Watchlist',
+                {
+                    description: `${company} ${
+                        added ? 'removed from' : 'added to'
+                    } your watchlist`,
+                }
+            );
 
             // Notify parent component of watchlist change for state synchronization
             onWatchlistChange?.(symbol, !added);
+        } catch (e: any) {
+            // Revert optimistic toggle
+            setAdded(added);
+
+            toast.error('Unable to update watchlist', {
+                description: e?.message || 'Please try again.',
+            });
         }
     };
 
@@ -71,7 +85,9 @@ const WatchlistButton = ({
                         ? `Remove ${symbol} from watchlist`
                         : `Add ${symbol} to watchlist`
                 }
-                className={`watchlist-icon-btn ${added ? 'watchlist-icon-added' : ''}`}
+                className={`watchlist-icon-btn ${
+                    added ? 'watchlist-icon-added' : ''
+                }`}
                 onClick={handleClick}
             >
                 <Star fill={added ? 'currentColor' : 'none'} />

@@ -4,9 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '../better-auth/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import {Watchlist} from "@/database/models/watchlist.model";
+import { Watchlist } from "@/database/models/watchlist.model";
 import { connectToDatabase } from "@/database/mongoose";
-import {getStocksDetails} from "@/lib/actions/finnhub.actions";
+import { getStocksDetails } from "@/lib/actions/finnhub.actions";
 
 // Add stock to watchlist
 export const addToWatchlist = async (symbol: string, company: string) => {
@@ -15,6 +15,8 @@ export const addToWatchlist = async (symbol: string, company: string) => {
             headers: await headers(),
         });
         if (!session?.user) redirect('/sign-in');
+
+        await connectToDatabase(); // ✅ ensure DB connection
 
         // Check if stock already exists in watchlist
         const existingItem = await Watchlist.findOne({
@@ -51,6 +53,8 @@ export const removeFromWatchlist = async (symbol: string) => {
         });
         if (!session?.user) redirect('/sign-in');
 
+        await connectToDatabase(); // ✅ ensure DB connection
+
         // Remove from watchlist
         await Watchlist.deleteOne({
             userId: session.user.id,
@@ -73,6 +77,8 @@ export const getUserWatchlist = async () => {
         });
         if (!session?.user) redirect('/sign-in');
 
+        await connectToDatabase(); // ✅ ensure DB connection
+
         const watchlist = await Watchlist.find({ userId: session.user.id })
             .sort({ addedAt: -1 })
             .lean();
@@ -82,7 +88,7 @@ export const getUserWatchlist = async () => {
         console.error('Error fetching watchlist:', error);
         throw new Error('Failed to fetch watchlist');
     }
-}
+};
 
 // Get watchlist symbols by user email (used by background jobs)
 export const getWatchlistSymbolsByEmail = async (email: string): Promise<string[]> => {
@@ -124,6 +130,8 @@ export const getWatchlistWithData = async () => {
             headers: await headers(),
         });
         if (!session?.user) redirect('/sign-in');
+
+        await connectToDatabase(); // ✅ ensure DB connection
 
         const watchlist = await Watchlist.find({ userId: session.user.id }).sort({ addedAt: -1 }).lean();
 
