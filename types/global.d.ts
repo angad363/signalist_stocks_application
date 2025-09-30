@@ -168,6 +168,15 @@ declare global {
         news?: MarketNewsArticle[];
     };
 
+    // Minimal user shape required for news email delivery tasks
+    // Matches the shape returned by getAllUsersForNewsEmail()
+    type UserForNewsEmail = {
+        id: string;
+        email: string;
+        name: string;
+        country?: string;
+    };
+
     type SearchCommandProps = {
         open?: boolean;
         setOpen?: (open: boolean) => void;
