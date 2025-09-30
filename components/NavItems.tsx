@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import React from 'react'
 import SearchCommand from "@/components/SearchCommand";
 
-const NavItems = ({initialStocks}: {initialStocks : StockWithWatchlistStatus}) => {
+const NavItems = ({initialStocks}: {initialStocks : StockWithWatchlistStatus[]}) => {
     const pathName = usePathname()
     const isActive = (path: string) => {
         if(path === '/')
