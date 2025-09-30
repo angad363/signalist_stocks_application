@@ -1,12 +1,12 @@
 'use client';
-import { useDebounce } from '@/hooks/useDebounce';
+import {useDebounce} from '@/hooks/useDebounce';
 import {
     addToWatchlist,
     removeFromWatchlist,
 } from '@/lib/actions/watchlist.actions';
-import { Star, Trash2 } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import {Star, Trash2} from 'lucide-react';
+import React, {useMemo, useState} from 'react';
+import {toast} from 'sonner';
 
 // Minimal WatchlistButton implementation to satisfy page requirements.
 // This component focuses on UI contract only. It toggles local state and
@@ -35,7 +35,12 @@ const WatchlistButton = ({
                 : await addToWatchlist(symbol, company);
 
             if (!result?.success) {
-                throw new Error(result?.error || 'Watchlist update failed');
+                const errorMessage =
+                    "error" in result
+                        ? result.error
+                        : result.message || "Watchlist update failed";
+
+                throw new Error(errorMessage);
             }
 
             toast.success(
@@ -49,12 +54,14 @@ const WatchlistButton = ({
 
             // Notify parent component of watchlist change for state synchronization
             onWatchlistChange?.(symbol, !added);
-        } catch (e: any) {
+        } catch (e: unknown) {
             // Revert optimistic toggle
             setAdded(added);
 
+            const errorMsg = e instanceof Error ? e.message : 'Please try again.';
+
             toast.error('Unable to update watchlist', {
-                description: e?.message || 'Please try again.',
+                description: errorMsg,
             });
         }
     };
@@ -90,7 +97,7 @@ const WatchlistButton = ({
                 }`}
                 onClick={handleClick}
             >
-                <Star fill={added ? 'currentColor' : 'none'} />
+                <Star fill={added ? 'currentColor' : 'none'}/>
             </button>
         );
     }
@@ -100,7 +107,7 @@ const WatchlistButton = ({
             className={`watchlist-btn ${added ? 'watchlist-remove' : ''}`}
             onClick={handleClick}
         >
-            {showTrashIcon && added ? <Trash2 /> : null}
+            {showTrashIcon && added ? <Trash2/> : null}
             <span>{label}</span>
         </button>
     );
