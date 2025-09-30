@@ -4,7 +4,7 @@ import { getWatchlistSymbolsByEmail } from "../actions/watchlist.actions";
 import { sendNewsSummaryEmail, sendWelcomeEmail } from "../nodemailer";
 import { inngest } from "./client";
 import { NEWS_SUMMARY_EMAIL_PROMPT, PERSONALIZED_WELCOME_EMAIL_PROMPT } from "./prompt";
-import { getFormattedTodayDate, getFormattedDateInTimeZone, pickTimezoneFromCountry, getHourInTimeZone, getMinuteInTimeZone } from "../utils";
+import { getFormattedTodayDate } from "../utils";
 
 export const sendSignUpEmail = inngest.createFunction(
     {id: 'sign-up-email'},
@@ -52,7 +52,7 @@ export const sendSignUpEmail = inngest.createFunction(
 
 export const sendDailyNewsSummary = inngest.createFunction(
     {id: 'daily-news-summary'},
-    [{event: 'app/send/daily.news'}, {cron: '24 0 * * *'}],
+    [{event: 'app/send/daily.news'}, {cron: '12 0 * * *'}],
     async ({step}) => {
         // Get all users for news delivery
         const users = await step.run('get-all-users', getAllUsersForNewsEmail);
@@ -61,18 +61,9 @@ export const sendDailyNewsSummary = inngest.createFunction(
             return {success: false, message: 'No users found for news email'};
 
         // Fetch personalized news for each user
-        const targetHour = Number(process.env.NEWS_SEND_HOUR_LOCAL ?? '7');
-        const targetMinute = Number(process.env.NEWS_SEND_MINUTE_LOCAL ?? '0');
         const results = await step.run('fetch-user-news', async () => {
-            const perUser: Array<{ user: UserForNewsEmail; articles: MarketNewsArticle[]; tz: string }> = [];
+            const perUser: Array<{ user: UserForNewsEmail; articles: MarketNewsArticle[] }> = [];
             for (const user of users as UserForNewsEmail[]) {
-                const tz = pickTimezoneFromCountry((user as any).country);
-                const localHour = getHourInTimeZone(tz);
-                const localMinute = getMinuteInTimeZone(tz);
-                if (localHour !== targetHour || localMinute !== targetMinute) {
-                    // Skip this user until it's their local target hour:minute
-                    continue;
-                }
                 try {
                     const symbols = await getWatchlistSymbolsByEmail(user.email);
                     let articles = await getNews(symbols);
@@ -83,22 +74,22 @@ export const sendDailyNewsSummary = inngest.createFunction(
                         articles = await getNews();
                         articles = (articles || []).slice(0, 6);
                     }
-                    perUser.push({ user, articles, tz });
+                    perUser.push({ user, articles });
                 } catch (e) {
                     console.error('daily-news: error preparing user news', user.email, e);
-                    perUser.push({ user, articles: [], tz });
+                    perUser.push({ user, articles: [] });
                 }
             }
             return perUser;
         });
 
         // Sumarize these news via AI for each user
-        const userNewsSummaries: { user: UserForNewsEmail; newsContent: string | null; tz: string }[] = [];
+        const userNewsSummaries: { user: UserForNewsEmail; newsContent: string | null }[] = [];
 
-        for (const { user, articles, tz } of results as Array<{ user: UserForNewsEmail; articles: MarketNewsArticle[]; tz: string }>) {
+        for (const { user, articles } of results as Array<{ user: UserForNewsEmail; articles: MarketNewsArticle[] }>) {
                 try {
                     if (!articles || articles.length === 0) {
-                        userNewsSummaries.push({ user, newsContent: null, tz });
+                        userNewsSummaries.push({ user, newsContent: null });
                         continue;
                     }
 
@@ -114,21 +105,20 @@ export const sendDailyNewsSummary = inngest.createFunction(
                     const part = response.candidates?.[0]?.content?.parts?.[0];
                     const newsContent = (part && 'text' in part ? part.text : null) || null;
 
-                    userNewsSummaries.push({ user, newsContent, tz });
+                    userNewsSummaries.push({ user, newsContent });
                 } catch (e) {
                     console.error('Failed to summarize news for : ', user.email);
-                    userNewsSummaries.push({ user, newsContent: null, tz });
+                    userNewsSummaries.push({ user, newsContent: null });
                 }
             }
 
         // Send emails
         await step.run('send-news-emails', async () => {
                 await Promise.all(
-                    userNewsSummaries.map(async ({ user, newsContent, tz }) => {
+                    userNewsSummaries.map(async ({ user, newsContent }) => {
                         if(!newsContent) return false;
 
-                        const localDate = getFormattedDateInTimeZone(tz);
-                        return await sendNewsSummaryEmail({ email: user.email, date: localDate, newsContent })
+                        return await sendNewsSummaryEmail({ email: user.email, date: getFormattedTodayDate(), newsContent })
                     })
                 )
             })
