@@ -36,6 +36,7 @@ const SignUp = () => {
     const result = await signUpWithEmail(data);
     console.log("Server action result:", result); // 👈 add this
     if (result.success) {
+        toast.success("Account created! Redirecting to dashboard...");
       router.push("/");
     }
   } catch (error) {
