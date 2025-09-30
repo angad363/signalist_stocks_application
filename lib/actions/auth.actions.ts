@@ -4,37 +4,36 @@ import { headers } from "next/headers";
 import { auth } from "../better-auth/auth";
 import { inngest } from "../inngest/client";
 
-export const signUpWithEmail = async ({email, password, fullName, investmentGoals, country, riskTolerance, preferredIndustry}: SignUpFormData) => {
+export const signUpWithEmail = async (formData: SignUpFormData) => {
     try {
         const response = await auth.api.signUpEmail({
             body: {
-                email: email,
-                password: password,
-                name: fullName
+                email: formData.email,
+                password: formData.password,
+                name: formData.fullName
             }
-        })
+        });
 
-        if(response) {
+        if (response) {
             await inngest.send({
                 name: 'app/user.created',
-                data: {
-                    email,
-                    name: fullName,
-                    country,
-                    investmentGoals,
-                    riskTolerance,
-                    preferredIndustry
-                }
-            })
+                data: { ...formData }
+            });
         }
 
-        return {success: true, data: response}
-
+        // Return only serializable fields
+        return {
+            success: true,
+            user: {
+                email: formData.email,
+                name: formData.fullName
+            }
+        };
     } catch (error) {
-        console.log('Sign up failed, ', error);
-        return {success: false, error: 'Sign Up Failed'}
+        console.error('Sign up failed:', error);
+        return { success: false, error: 'Sign Up Failed' };
     }
-}
+};
 
 export const signOut = async () => {
     try {

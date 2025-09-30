@@ -30,27 +30,30 @@ const SignUp = () => {
     },
     mode: 'onBlur'
   })
-  const onSubmit = async (data: SignUpFormData) => {
-  console.log("Submitting form with data:", data); // 👈 add this
-  try {
-    const result = await signUpWithEmail(data);
-    console.log("Server action result:", result); // 👈 add this
-    if (result.success) {
-        toast.success("Account created! Redirecting to dashboard...");
-      router.push("/");
-    }
-  } catch (error) {
-    console.error("Sign-up error:", error);
-    toast.error("Sign Up Failed", {
-      description:
-        error instanceof Error
-          ? error.message
-          : "Failed to create an account",
-    });
-  }
-};
+    const onSubmit = async (data: SignUpFormData) => {
+        try {
+            const result = await signUpWithEmail(data);
 
-  return (
+            console.log("Server action result:", result); // should now show { success: true, user: {...} }
+
+            if (result.success) {
+                router.replace('/'); // redirect to dashboard
+            } else {
+                toast.error(result.error || "Sign Up Failed");
+            }
+        } catch (error) {
+            console.error("Sign-up error:", error);
+            toast.error("Sign Up Failed", {
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to create an account",
+            });
+        }
+    };
+
+
+    return (
     <>
         <h1 className='form-title'>Sign Up & Personalize</h1>
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
