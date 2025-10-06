@@ -1,4 +1,24 @@
-# 📈 Signalist — Real-Time Stock Tracker Application
+<!-- PROJECT BANNER -->
+<p align="center">
+  <img src="public/assets/images/logo.png" alt="Signalist Banner" width="100%" />
+</p>
+
+<h1 align="center">📈 Signalist — Real-Time Stock Tracker Application</h1>
+
+<p align="center">
+  <strong>Track live stock prices, AI-powered insights, personalized alerts, and interactive charts — built with Next.js, Better Auth, and Inngest.</strong>
+</p>
+
+<p align="center">
+  <!-- Badges -->
+  <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js Badge" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript Badge" /></a>
+  <a href="https://better-auth.com/"><img src="https://img.shields.io/badge/Better_Auth-7C3AED?style=for-the-badge&logo=auth0&logoColor=white" alt="Better Auth Badge" /></a>
+  <a href="https://www.inngest.com/"><img src="https://img.shields.io/badge/Inngest-0A7FFF?style=for-the-badge&logo=workflow&logoColor=white" alt="Inngest Badge" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License Badge" /></a>
+</p>
+
+## 🚀 Overview
 
 **Signalist** is a powerful real-time stock tracking application built for investors, traders, and market enthusiasts. It delivers **live stock prices**, **AI-driven insights**, **personalized alerts**, and **interactive charts**, all wrapped in a sleek, modern UI powered by **Next.js**, **Better Auth**, and **Inngest** for automation.
 
@@ -68,6 +88,19 @@
 
 ---
 
+## 🧠 Environment Variables
+
+Create a `.env.local` file in your project root and include the following keys:
+
+```bash
+MONGODB_URI=your_mongodb_connection_string
+BETTER_AUTH_SECRET=your_better_auth_secret
+BETTER_AUTH_URL=https://your-app-url.com
+GEMINI_API_KEY=your_gemini_api_key
+NODEMAILER_EMAIL=your_email@example.com
+NODEMAILER_PASSWORD=your_email_password
+NEXT_PUBLIC_FINNHUB_API_KEY=your_finnhub_api_key
+```
 ## 🧩 Installation & Setup
 
 Follow these steps to get started locally:
@@ -86,3 +119,4 @@ cp .env.example .env.local
 
 # Run the development server
 npm run dev
+```
